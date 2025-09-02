@@ -1,4 +1,4 @@
-# Natsch PoD Calculator — *Marvelous Maura Model* (v6)
+# Natsch PoD Calculator — a *Marvelous Maura Model* (v6)
 
 Implements equations **EQ1, EQ4, EQ5, EQ6, EQ7** exactly as in the Natsch calculator templates. **Defaults and normalizations match the papers.**
 
