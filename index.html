@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Natsch PoD Calculator — Marvelous Maura Model (v4 Strict)</title>
+<title>Natsch PoD Calculator — Marvelous Maura Model (v4.1 Strict)</title>
 <style>
   :root{--bg:#f6f8fb;--card:#fff;--ink:#0f172a;--muted:#5b6475;--accent:#0ea5e9;--line:#e5e7eb}
   *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
@@ -30,12 +30,13 @@
   table{width:100%;border-collapse:collapse;font-size:14px} th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
   .hr{height:1px;background:var(--line);margin:12px 0}
   pre.sig{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px;display:inline-block;text-align:left}
+  .badge{font-size:11px;padding:2px 8px;border-radius:999px;background:#eef6ff;color:#0b5fb0;border:1px solid #b6dbff}
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>Natsch PoD Calculator — <em>Marvelous Maura Model</em> (v4 Strict)</h1>
-  <div class="muted">Implements equations EQ1, EQ4, EQ5, EQ6, EQ7 exactly as in the Natsch calculator templates. Defaults and normalizations match the papers. No extra flags or decision rules.</div>
+  <h1>Natsch PoD Calculator — <em>Marvelous Maura Model</em> (v4.1 Strict)</h1>
+  <div class="muted">Implements equations EQ1, EQ4, EQ5, EQ6, EQ7 exactly as in the Natsch calculator templates. Defaults and normalizations match the papers.</div>
 
   <!-- CHEMICAL + VP -->
   <div class="card">
@@ -59,11 +60,17 @@
         </div>
       </div>
 
+      <div class="small" style="margin-top:8px">
+        <span class="badge">Optional</span> Load a local CAS→Name/MW/VP catalog (CSV/JSON; headers: <code>CAS,Name,MW,VP_Pa,VP_mmHg</code>).
+        <input type="file" id="catFile" accept=".csv,.json" style="margin-left:8px">
+        <span id="catStatus" class="small"></span>
+      </div>
+
       <div class="hr"></div>
       <div class="grid cols-3">
         <div>
           <label>Vapor pressure (Pa)</label>
-          <input id="vp_pa" type="number" step="0.0001" placeholder="TIMES SS or converted">
+          <input id="vp_pa" type="number" step="0.0001" placeholder="TIMES‑SS (Pa) or converted">
         </div>
         <div>
           <label>Vapor pressure (mmHg)</label>
@@ -140,14 +147,14 @@
 
   <!-- PDF EXTRACTOR -->
   <div class="card" style="margin-top:16px">
-    <div class="hd"><h2 style="margin:0;font-size:16px">5) Optional: extract values from a PDF report</h2><span class="pill">Parsing runs locally; files are not uploaded or saved.</span></div>
+    <div class="hd"><h2 style="margin:0;font-size:16px">5) Optional: extract from a report (TIMES‑SS / study PDF)</h2><span class="pill">Parsing runs locally; files are not uploaded or saved.</span></div>
     <div class="bd">
       <div class="row" style="grid-template-columns:1fr auto">
         <input type="file" id="pdfInput" accept="application/pdf">
         <button class="btn" id="btnParsePDF">Extract from PDF</button>
       </div>
-      <div class="small" style="margin-top:6px">If your network blocks the PDF engine, paste text below and click “Parse text.”</div>
-      <textarea id="pdfText" rows="6" placeholder="…or paste text from the PDF here"></textarea>
+      <div class="small" style="margin-top:6px">If your network blocks the PDF engine, paste report text below and click “Parse text.”</div>
+      <textarea id="pdfText" rows="6" placeholder="…or paste text from the report here"></textarea>
       <div class="row" style="grid-template-columns:auto auto auto 1fr;margin-top:8px">
         <button class="btn" id="btnParseText">Parse text</button>
         <button class="btn" id="btnFillFound">Apply found values</button>
@@ -159,7 +166,7 @@
 
   <!-- CALC -->
   <div class="card" style="margin-top:16px">
-    <div class="hd"><h2 style="margin:0;font-size:16px">6) Calculate PoD</h2><span class="pill">All five equations compute pEC3 and EC3 (% w/w) as in Natsch’s calculator.</span></div>
+    <div class="hd"><h2 style="margin:0;font-size:16px">6) Calculate PoD</h2><span class="pill">pEC3 and EC3 (% w/w) via EQ1, EQ4, EQ5, EQ6, EQ7.</span></div>
     <div class="bd">
       <div class="row" style="grid-template-columns:auto auto 1fr">
         <button class="btn primary" id="btnCalc">Calculate</button>
@@ -174,12 +181,12 @@
     <div class="hd"><h2 style="margin:0;font-size:16px">7) Data source finder</h2></div>
     <div class="bd">
       <div class="row" style="grid-template-columns:1fr auto auto">
-        <input id="srcCas" placeholder="CAS for search links (defaults to top CAS field)">
+        <input id="srcCas" placeholder="CAS for search links (defaults to the top CAS field)">
         <button class="btn" id="btnMakeLinks">Make links</button>
         <button class="btn" id="btnOpenAll">Open all</button>
       </div>
       <div id="links" class="small" style="margin-top:8px"></div>
-      <div class="small" style="margin-top:8px">These open official portals with your CAS pre-filled (or search queries). Some sites require sign-in.</div>
+      <div class="small" style="margin-top:8px">Opens official portals with your CAS prefilled: EPA CompTox, PubChem, OECD eChemPortal, ECHA, Google Scholar, PubMed.</div>
     </div>
   </div>
 
@@ -195,7 +202,52 @@ This has been a (>-.-)> Maura Lavelle <(-.-)> Production!!</pre>
 const Q = s => document.querySelector(s);
 const log10 = x => Math.log10(x);
 const clamp0 = x => Math.max(0, x);
-const toFixed = (x, n=4) => (isFinite(x) ? x.toFixed(n) : "");
+
+let CATALOG = null;
+
+// Catalog loader
+Q('#catFile').addEventListener('change', async e=>{
+  const f = e.target.files?.[0]; if(!f) return;
+  const txt = await f.text();
+  let obj = null, rows = 0;
+  try{
+    if(f.name.toLowerCase().endswith('.json')){
+      obj = JSON.parse(txt);
+      rows = Array.isArray(obj) ? obj.length : Object.keys(obj||{}).length;
+    }else{
+      // simple CSV
+      const lines = txt.trim().split(/\\r?\\n/);
+      const head = lines.shift().split(',').map(s=>s.trim().toLowerCase());
+      const idx = (k)=>head.indexOf(k);
+      const iCAS=idx('cas'), iName=idx('name'), iMW=idx('mw'), iPa=idx('vp_pa'), iHg=idx('vp_mmhg');
+      obj = {};
+      for(const ln of lines){
+        const cells = ln.split(',').map(s=>s.trim());
+        const cas = cells[iCAS];
+        if(!cas) continue;
+        obj[cas] = {name: cells[iName]||'', mw: parseFloat(cells[iMW]), pa: parseFloat(cells[iPa]), mmhg: parseFloat(cells[iHg])};
+        rows++;
+      }
+    }
+    CATALOG = obj;
+    Q('#catStatus').textContent = `Loaded ${rows} entries.`;
+    tryCatalogFill();
+  }catch(err){
+    Q('#catStatus').textContent = 'Could not read file.';
+  }
+});
+
+function tryCatalogFill(){
+  if(!CATALOG) return;
+  const cas = (Q('#cas').value||'').trim();
+  if(!cas) return;
+  const rec = Array.isArray(CATALOG) ? CATALOG.find(r=>r.CAS===cas || r.cas===cas) : CATALOG[cas];
+  if(!rec) return;
+  if(rec.name && !Q('#name').value) Q('#name').value = rec.name;
+  if(rec.mw && !Q('#mw').value) Q('#mw').value = rec.mw;
+  if(rec.pa){ Q('#vp_pa').value = rec.pa; syncVP('pa'); }
+  else if(rec.mmhg){ Q('#vp_mmhg').value = rec.mmhg; syncVP('mm'); }
+}
 
 // VP sync
 function syncVP(from){
@@ -273,10 +325,7 @@ function computeKnorm(){
   Q('#logk_norm').value = kn.toFixed(4);
 }
 
-function recalcAll(){
-  syncVP('pa'); computeKnorm(); unitConvertKS(); unitConvertH();
-}
-
+function recalcAll(){ syncVP('pa'); computeKnorm(); unitConvertKS(); unitConvertH(); }
 function usable(x){ return isFinite(x) && x>0; }
 
 function calc(){
@@ -293,7 +342,6 @@ function calc(){
   const rows = [];
   const add = (label, p) => rows.push({label, p, EC3: (isFinite(mw)&&isFinite(p))? (mw/Math.pow(10,p)) : NaN});
 
-  // Strict equations as in the calculator
   if(usable(kN) && (usable(e15)||usable(ic))) add('EQ1 (kDPRA + KS + VP)', 0.42 + 0.40*kN + 0.15*e15 + 0.36*ic - 0.21*vpN);
   if(usable(kN) && (usable(mit)||usable(cv))) add('EQ4 (kDPRA + h-CLAT + VP)', 0.18 + 0.36*kN + 0.21*mit + 0.35*cv - 0.19*vpN);
   if(usable(kN) && (usable(e15)||usable(ic)) && (usable(mit)||usable(cv))) add('EQ5 (kDPRA + KS + h-CLAT + VP)', 0.20 + 0.34*kN + 0.20*mit + 0.09*e15 + 0.21*cv + 0.11*ic - 0.19*vpN);
@@ -303,7 +351,6 @@ function calc(){
   const t = Q('#results');
   if(rows.length===0){ t.innerHTML = '<div class="muted">Not enough inputs to compute.</div>'; return; }
 
-  // Natsch sheet logic typically highlights a preferred model; we show all and mark the top one by data availability:
   let rec = null; for(const tag of ['EQ5','EQ1','EQ4','EQ7','EQ6']){ const r = rows.find(x=>x.label.startsWith(tag)); if(r){rec=r; break;} }
   let html = '';
   if(rec){
@@ -321,7 +368,7 @@ function calc(){
   t.innerHTML = html;
 }
 
-// Source finder
+// Data source finder
 function makeLinks(){
   const cas = (Q('#srcCas').value || Q('#cas').value || '').trim();
   if(!cas){ alert('Enter a CAS first.'); return; }
@@ -354,27 +401,53 @@ async function extractPDFText(file){
   let text=''; for(let i=1;i<=doc.numPages;i++){ const page=await doc.getPage(i); const c=await page.getTextContent(); text += c.items.map(it=>it.str).join(' ') + '\\n'; }
   return text;
 }
-function parseAssayText(txt){
+
+// Regex extraction for KS / h-CLAT / kDPRA / VP / MW / Name
+function parseReportText(txt){
   const out = {}; const u='[\\u00B5µu]';
   const m = re => { const r = re.exec(txt); return r? r[1] : null; };
+  // KS
   out.ks_ec15 = m(new RegExp(`EC\\s*1[.,]?5\\s*[:=]?\\s*([\\d.]+)\\s*(?:${u}M|uM|µM|ug\\/mL|µg\\/mL|μg\\/mL)?`,'i'));
   out.ks_ec3  = m(new RegExp(`EC\\s*3\\s*[:=]?\\s*([\\d.]+)\\s*(?:${u}M|uM|µM|ug\\/mL|µg\\/mL|μg\\/mL)?`,'i'));
   out.ks_ic50 = m(new RegExp(`IC\\s*50\\s*[:=]?\\s*([\\d.]+)\\s*(?:${u}M|uM|µM|ug\\/mL|µg\\/mL|μg\\/mL)?`,'i'));
+  // h-CLAT
   out.h_ec150 = m(new RegExp(`EC\\s*150\\s*(?:CD\\s*86)?\\s*[:=]?\\s*([\\d.]+)\\s*(?:${u}M|uM|µM|ug\\/mL|µg\\/mL|μg\\/mL)?`,'i'));
   out.h_ec200 = m(new RegExp(`EC\\s*200\\s*(?:CD\\s*54)?\\s*[:=]?\\s*([\\d.]+)\\s*(?:${u}M|uM|µM|ug\\/mL|µg\\/mL|μg\\/mL)?`,'i'));
   out.h_cv75  = m(new RegExp(`CV\\s*75\\s*[:=]?\\s*([\\d.]+)\\s*(?:${u}M|uM|µM|ug\\/mL|µg\\/mL|μg\\/mL)?`,'i'));
+  // kDPRA
   out.logk    = m(/(log\\s*k\\s*max|logkmax|kDPRA\\s*logk)\\s*[:=]?\\s*(-?[\\d.]+)/i);
+  // VP (TIMES‑SS or reports)
+  out.vp_pa   = m(/vapor\\s*pressure[^\\n]*?([\\d.]+)\\s*Pa/i);
+  out.vp_mmhg = m(/vapor\\s*pressure[^\\n]*?([\\d.]+)\\s*mm\\s*hg/i);
+  // MW & name (if present)
+  const mw = m(/(molecular\\s*weight|mw)\\s*[:=]?\\s*([\\d.]+)\\s*(?:g\\/?mol|dalton|Da)?/i);
+  out.mw = mw;
+  const nm = m(/(chemical|compound)\\s*(identifier|name)\\s*[:=]?\\s*([A-Za-z0-9\\-\\s,_().]+)/i) || m(/name\\s*[:=]\\s*([A-Za-z0-9\\-\\s,_().]+)/i);
+  out.name = nm;
   return out;
 }
+
 function showFound(obj){
-  const f=Q('#found'); const pairs=Object.entries(obj).filter(([k,v])=>v!=null);
-  f.innerHTML = pairs.length? '<b>Found:</b> '+pairs.map(([k,v])=>`${k} = <b>${v}</b>`).join(' · ') : '<span class="muted">No obvious assay values found.</span>';
+  const f = Q('#found');
+  const pairs = Object.entries(obj).filter(([k,v])=>v!=null);
+  if(pairs.length===0){ f.innerHTML = '<span class="muted">No obvious values found yet.</span>'; return; }
+  f.innerHTML = '<b>Found:</b> ' + pairs.map(([k,v])=>`${k} = <b>${v}</b>`).join(' · ');
 }
+
 function applyFound(obj){
-  const set=(id,val)=>{ if(val!=null) Q('#'+id).value = val; };
-  set('ks_ec15', obj.ks_ec15); set('ks_ec3', obj.ks_ec3); set('ks_ic50', obj.ks_ic50);
-  set('h_ec150', obj.h_ec150); set('h_ec200', obj.h_ec200); set('h_cv75', obj.h_cv75);
-  set('logk', obj.logk);
+  const set = (id,val) => { if(val!=null) Q('#'+id).value = val; };
+  set('ks_ec15', obj.ks_ec15);
+  set('ks_ec3',  obj.ks_ec3);
+  set('ks_ic50', obj.ks_ic50);
+  set('h_ec150', obj.h_ec150);
+  set('h_ec200', obj.h_ec200);
+  set('h_cv75',  obj.h_cv75);
+  set('logk',    obj.logk);
+  if(obj.mw && !Q('#mw').value) Q('#mw').value = obj.mw;
+  if(obj.name && !Q('#name').value) Q('#name').value = obj.name;
+  if(obj.vp_pa){ Q('#vp_pa').value = obj.vp_pa; syncVP('pa'); }
+  else if(obj.vp_mmhg){ Q('#vp_mmhg').value = obj.vp_mmhg; syncVP('mm'); }
+  // trigger conversions
   unitConvertKS(); unitConvertH(); computeKnorm();
 }
 
@@ -385,6 +458,7 @@ document.addEventListener('input', (e)=>{
   if(['ks_units','ks_ec15','ks_ec3','ks_ic50','mw'].includes(e.target.id)) unitConvertKS();
   if(['hclat_units','h_ec150','h_ec200','h_cv75','mw'].includes(e.target.id)) unitConvertH();
   if(['logk'].includes(e.target.id)) computeKnorm();
+  if(e.target.id==='cas') tryCatalogFill();
 });
 document.getElementById('btnCalc').addEventListener('click', calc);
 document.getElementById('btnClear').addEventListener('click', ()=>location.reload());
@@ -402,22 +476,22 @@ document.getElementById('btnLookup').addEventListener('click', ()=>{
     .catch(()=>alert('Could not fetch from PubChem. You can still type values manually.'));
 });
 document.getElementById('btnMakeLinks').addEventListener('click', makeLinks);
-document.getElementById('btnOpenAll').addEventListener('click', openAll);
+document.getElementById('btnOpenAll').addEventListener('click', ()=>{ (Q('#links')._urls||[]).forEach(u=>window.open(u,'_blank')); });
 
 // PDF hooks
 document.getElementById('btnParsePDF').addEventListener('click', async ()=>{
   const f = Q('#pdfInput').files?.[0]; if(!f){ alert('Choose a PDF file first.'); return; }
   Q('#parseStatus').textContent = 'Parsing PDF… (local)';
-  try{ const txt = await extractPDFText(f); Q('#pdfText').value = txt; Q('#parseStatus').textContent = 'Got text from PDF.'; const found = parseAssayText(txt); showFound(found); Q('#btnFillFound').onclick = ()=>applyFound(found); }
+  try{ const txt = await extractPDFText(f); Q('#pdfText').value = txt; Q('#parseStatus').textContent = 'Got text from PDF.'; const found = parseReportText(txt); showFound(found); Q('#btnFillFound').onclick = ()=>applyFound(found); }
   catch(e){ Q('#parseStatus').textContent = 'PDF engine blocked on this network. Paste text instead.'; }
 });
 document.getElementById('btnParseText').addEventListener('click', ()=>{
   const txt = Q('#pdfText').value||''; if(!txt.trim()){ alert('Paste some text first.'); return; }
-  const found = parseAssayText(txt); showFound(found); Q('#btnFillFound').onclick = ()=>applyFound(found);
+  const found = parseReportText(txt); showFound(found); Q('#btnFillFound').onclick = ()=>applyFound(found);
 });
 
 // initial
-syncVP('pa'); unitConvertKS(); unitConvertH(); computeKnorm(); makeLinks();
+syncVP('pa'); unitConvertKS(); unitConvertH(); computeKnorm();
 </script>
 </body>
 </html>
