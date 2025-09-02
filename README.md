@@ -1,11 +1,12 @@
-# Natsch PoD Calculator — *Marvelous Maura Model* (v5)
+# Natsch PoD Calculator — *Marvelous Maura Model* (v6)
 
 Implements equations **EQ1, EQ4, EQ5, EQ6, EQ7** exactly as in the Natsch calculator templates. **Defaults and normalizations match the papers.**
 
-This is a single‑page app to compute **pEC3/EC3** from in‑vitro KE data (kDPRA, KeratinoSens™, h‑CLAT) and vapor pressure. Usage: open `index.html`, enter values (µM or µg/mL; auto‑conversion provided), then **Calculate** to see all five equations.
+**What’s new in v6**
+- EPA CompTox auto‑fill for vapor pressure (mmHg → Pa). Add your free API key in **Settings**, then click **Auto‑fill from EPA**.
+- Local CAS→MW/VP catalog loader (CSV/JSON).
+- Report extractor for VP + KS/h‑CLAT/kDPRA fields from pasted text or PDFs (client‑side only).
 
-> pEC3 = log10(MW / EC3)  →  EC3 = MW / 10^{pEC3}
+**How to publish**: put `index.html` at the repo root → *Settings → Pages → Deploy from a branch → main / (root)*.
 
-**Publish on GitHub Pages:** upload `index.html` to a public repo (root), then Settings → Pages → Deploy from a branch → `main` / `(root)`.
-
-— Updated 2025-09-02
+— 2025-09-02
