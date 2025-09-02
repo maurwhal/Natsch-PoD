@@ -7,6 +7,4 @@ Implements equations **EQ1, EQ4, EQ5, EQ6, EQ7** exactly as in the Natsch calcul
 - Local CAS→MW/VP catalog loader (CSV/JSON).
 - Report extractor for VP + KS/h‑CLAT/kDPRA fields from pasted text or PDFs (client‑side only).
 
-**How to publish**: put `index.html` at the repo root → *Settings → Pages → Deploy from a branch → main / (root)*.
-
 — 2025-09-02
